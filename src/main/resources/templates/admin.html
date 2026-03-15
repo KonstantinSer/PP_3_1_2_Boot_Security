@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Список пользователей</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 5px 10px; cursor: pointer; }
+        .logout-form { float: right; margin: 10px; }
+    </style>
+</head>
+<body>
+<div class="logout-form">
+    <form th:action="@{/logout}" method="post">
+        <button type="submit">Выйти</button>
+    </form>
+</div>
+
+<h2>Пользователи</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>Имя (username)</th>
+        <th>Email</th>
+        <th>Возраст (age)</th>
+        <th>Операции</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.username}">Имя</td>
+        <td th:text="${user.email}">Email</td>
+        <td th:text="${user.age}">Возраст</td>
+        <td>
+            <!-- Редактирование: GET /admin/updateInfo?id=123 -->
+            <a th:href="@{/admin/updateInfo(id=${user.id})}" style="text-decoration: none;">
+                <button type="button">✏️ Обновить</button>
+            </a>
+
+            <!-- Удаление: POST через форму -->
+            <form th:action="@{/admin/deleteUser}" method="post" style="display: inline;">
+                <input type="hidden" name="id" th:value="${user.id}" />
+                <button type="submit" onclick="return confirm('Удалить?')">🗑️ Удалить</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<br/>
+
+<!-- Кнопка добавления нового пользователя -->
+<input type="button" value="Добавить пользователя" onclick="window.location.href='/admin/addNewUser'"/>
+
+</body>
+</html>
