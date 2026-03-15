@@ -13,20 +13,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.DAO.RoleRepository;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.Set;
 
 @Controller
 public class UserControllers {
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private RoleRepository roleRepository;
 
 
     @Autowired
-    public UserControllers(UserServiceImpl userService, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public UserControllers(UserService userService, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
