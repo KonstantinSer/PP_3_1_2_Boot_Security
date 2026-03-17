@@ -26,7 +26,7 @@
             </div>
 
             <!-- Форма логина -->
-            <form th:action="@{/login}" method="post">
+            <form action="/login" method="post">
                 <div class="mb-3">
                     <label for="username" class="form-label">Имя пользователя:</label>
                     <input type="text"
@@ -51,17 +51,6 @@
 
             <div class="text-center mt-3">
                 <a th:href="@{/register}">Зарегистрироваться</a>
-            </div>
-
-            <!-- Тестовые данные (только для разработки) -->
-            <div class="card mt-4">
-                <div class="card-header bg-info text-white">
-                    Тестовые данные
-                </div>
-                <div class="card-body">
-                    <p><strong>Админ:</strong> admin / admin</p>
-                    <p><strong>Пользователь:</strong> user / user</p>
-                </div>
             </div>
         </div>
     </div>

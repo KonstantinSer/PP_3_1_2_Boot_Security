@@ -4,6 +4,7 @@ package ru.kata.spring.boot_security.demo.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,14 +22,14 @@ import java.util.Set;
 public class UserControllers {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private RoleRepository roleRepository;
 
 
     @Autowired
-    public UserControllers(UserService userService, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public UserControllers(UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder, RoleRepository roleRepository) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.roleRepository = roleRepository;
 
     }
@@ -44,7 +45,7 @@ public class UserControllers {
                                    @RequestParam String password,
                                    @RequestParam Integer age,
                                    @RequestParam String email) {
-        String hashedPassword = passwordEncoder.encode(password);
+        String hashedPassword = bCryptPasswordEncoder.encode(password);
         Role userRole = roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new RuntimeException("Role ROLE_USER not found!"));
 

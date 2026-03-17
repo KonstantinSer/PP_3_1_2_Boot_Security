@@ -83,21 +83,35 @@
                placeholder="Введите возраст" min="1" max="150"/>
     </div>
 
-    <!-- Поле для пароля - обязательно только при создании -->
-    <div class="form-group" th:if="${user.id == null}">
-        <label>Пароль:</label>
-        <input type="password" th:field="*{password}" required
-               placeholder="Введите пароль"/>
+    <div class="form-group">
+        <label>Роли:</label>
+        <div th:each="role : ${allRoles}">
+            <input type="checkbox"
+                   name="roleIds"
+                   th:value="${role.id}"
+                   th:checked="${user.roles != null && user.roles.contains(role)}"/>
+            <span th:text="${role.name}">ROLE_NAME</span>
+        </div>
     </div>
 
-    <!-- Для редактирования - необязательное поле пароля -->
     <div class="form-group" th:if="${user.id != null}">
         <label>Новый пароль:</label>
-        <input type="password" name="newPassword"
+        <!-- Важно: name="password", чтобы Spring привязал это к полю password в объекте User -->
+        <input type="password"
+               name="password"
                placeholder="Оставьте пустым, если не хотите менять"/>
         <small style="color: #666; display: block; margin-left: 125px;">
             Заполните только если хотите изменить пароль
         </small>
+    </div>
+
+    <!-- Блок для СОЗДАНИЯ (показывается, если ID еще нет) -->
+    <div class="form-group" th:if="${user.id == null}">
+        <label>Пароль:</label>
+        <input type="password"
+               th:field="*{password}"
+               required
+               placeholder="Введите пароль"/>
     </div>
 
     <div class="form-group" style="margin-top: 20px;">

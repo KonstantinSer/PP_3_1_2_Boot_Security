@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
-@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -33,50 +32,58 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
     @Override
+    @Transactional
     public void save(User user) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-
-        Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new RuntimeException("Роль USER не найдена"));
-
-        Set<Role> roles = new HashSet<>();
-        roles.add(userRole);
-        user.setRoles(roles);
-
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        } else {
+            if (user.getId() == null) {
+                throw new IllegalArgumentException("Пароль обязателен для нового пользователя");
+            }
+        }
         userRepository.save(user);
     }
 
+
     @Override
+    @Transactional(readOnly = true)
     public User findById(Long id) {
         Optional<User> userFromDb = userRepository.findById(id);
         return userFromDb.orElse(null);
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         userRepository.deleteById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
+        System.out.println("Пользователь найден, роли: " + user.getRoles());
+
         return user;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
     @Override
+    @Transactional
     public User updateUser(User user) {
         User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден с id: " + user.getId()));
@@ -85,6 +92,20 @@ public class UserServiceImpl implements UserService {
         existingUser.setEmail(user.getEmail());
         existingUser.setAge(user.getAge());
 
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            if (!user.getPassword().equals(existingUser.getPassword())) {
+                existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            }
+        }
+        existingUser.setRoles(user.getRoles());
+
         return userRepository.save(existingUser);
+    }
+
+    @Override
+    @Transactional
+    public void saveWithRoles(User user) {
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
     }
 }

@@ -8,17 +8,27 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.kata.spring.boot_security.demo.DAO.RoleRepository;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
+
+import javax.validation.Valid;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
     private final UserService userService;
+    private final RoleRepository roleRepository;
 
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, RoleRepository roleRepository) {
+
         this.userService = userService;
+        this.roleRepository = roleRepository;
     }
 
     @GetMapping()
@@ -30,24 +40,49 @@ public class AdminController {
     @GetMapping("/addNewUser")
     public String showAddUserForm(Model model) {
         model.addAttribute("user", new User());
-        return "users-info";  // шаблон users-info.html
+        model.addAttribute("allRoles", roleRepository.findAll());
+        return "users-info";
+    }
+
+    @PostMapping("/addNewUser")
+    public String addUser(@ModelAttribute @Valid User user,
+                          @RequestParam(value = "roleIds", required = false) List<Long> roleIds) {
+
+        Set<Role> roles;
+
+        if (roleIds != null && !roleIds.isEmpty()) {
+
+            roles = new HashSet<>(roleRepository.findAllById(roleIds));
+        } else {
+
+            Role defaultRole = roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found"));
+            roles = Set.of(defaultRole);
+        }
+
+        user.setRoles(roles);
+        userService.save(user);
+        return "redirect:/admin";
     }
 
     @GetMapping("/updateInfo")
     public String showUpdateForm(@RequestParam("id") Long id, Model model) {
         User user = userService.findById(id);
         model.addAttribute("user", user);
+        model.addAttribute("allRoles", roleRepository.findAll());
+
         return "users-info";  // можно использовать тот же шаблон или отдельный
     }
 
     @PostMapping("/updateInfo")
-    public String updateUser(@ModelAttribute User user) {
-        userService.updateUser(user);
-        return "redirect:/admin";
-    }
+    public String updateUser(@ModelAttribute User user,
+                             @RequestParam(value = "roleIds", required = false) List<Long> roleIds) {
 
-    @PostMapping("/addNewUser")
-    public String addUser(@ModelAttribute User user) {
+        if (roleIds != null && !roleIds.isEmpty()) {
+            user.setRoles(new HashSet<>(roleRepository.findAllById(roleIds)));
+        } else {
+            roleRepository.findByName("ROLE_USER").ifPresent(r -> user.setRoles(Set.of(r)));
+        }
         userService.save(user);
         return "redirect:/admin";
     }
