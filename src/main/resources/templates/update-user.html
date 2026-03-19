@@ -59,7 +59,7 @@
 </div>
 
 <!-- Форма для добавления/редактирования -->
-<form th:action="@{${user.id == null} ? '/admin/addNewUser' : '/admin/updateInfo'}"
+<form th:action="@{${user.id == null} ? '/admin/addNewUser' : '/admin/updateUser'}"
       th:object="${user}" method="post">
 
     <!-- ID пользователя (только при редактировании) -->

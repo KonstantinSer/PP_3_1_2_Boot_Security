@@ -14,7 +14,6 @@ import ru.kata.spring.boot_security.demo.model.User;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -37,9 +36,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
+
     @Override
     @Transactional
-    public void save(User user) {
+    public void newUser(User user, List<Long> roleIds) {
+
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         } else {
@@ -47,15 +48,25 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Пароль обязателен для нового пользователя");
             }
         }
+
+        Set<Role> roles;
+        if (roleIds != null && !roleIds.isEmpty()) {
+            roles = new HashSet<>(roleRepository.findAllById(roleIds));
+        } else {
+            Role defaultRole = roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found"));
+            roles = Set.of(defaultRole);
+        }
+
+        user.setRoles(roles);
         userRepository.save(user);
     }
-
 
     @Override
     @Transactional(readOnly = true)
     public User findById(Long id) {
-        Optional<User> userFromDb = userRepository.findById(id);
-        return userFromDb.orElse(null);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
     @Override
@@ -79,12 +90,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return user;
+        } else {
+            throw new UsernameNotFoundException("User not found");
+        }
     }
 
     @Override
     @Transactional
-    public User updateUser(User user) {
+    public void updateUser(User user, List<Long> roleIds) {
         User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден с id: " + user.getId()));
 
@@ -92,20 +109,28 @@ public class UserServiceImpl implements UserService {
         existingUser.setEmail(user.getEmail());
         existingUser.setAge(user.getAge());
 
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            if (!user.getPassword().equals(existingUser.getPassword())) {
-                existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            }
-        }
-        existingUser.setRoles(user.getRoles());
+        Set<Role> roles;
 
-        return userRepository.save(existingUser);
+        if (roleIds != null && !roleIds.isEmpty()) {
+            roles = new HashSet<>(roleRepository.findAllById(roleIds));
+        } else {
+            Role defaultRole = roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found"));
+            roles = Set.of(defaultRole);
+        }
+
+        existingUser.setRoles(roles);
+
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        }
+
+        userRepository.save(existingUser);
     }
 
     @Override
-    @Transactional
-    public void saveWithRoles(User user) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+    @Transactional(readOnly = true)
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
     }
 }

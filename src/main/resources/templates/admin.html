@@ -36,7 +36,7 @@
         <td th:text="${user.age}">Возраст</td>
         <td>
             <!-- Редактирование: GET /admin/updateInfo?id=123 -->
-            <a th:href="@{/admin/updateInfo(id=${user.id})}" style="text-decoration: none;">
+            <a th:href="@{/admin/updateUser(id=${user.id})}" style="text-decoration: none;">
                 <button type="button">✏️ Обновить</button>
             </a>
 

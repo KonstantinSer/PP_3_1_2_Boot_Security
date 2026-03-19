@@ -2,56 +2,22 @@ package ru.kata.spring.boot_security.demo.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import ru.kata.spring.boot_security.demo.DAO.RoleRepository;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.Set;
+import java.security.Principal;
 
 @Controller
 public class UserControllers {
 
     private final UserService userService;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private RoleRepository roleRepository;
-
 
     @Autowired
-    public UserControllers(UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder, RoleRepository roleRepository) {
+    public UserControllers(UserService userService) {
         this.userService = userService;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.roleRepository = roleRepository;
-
-    }
-
-    @GetMapping("/register")
-    public String getRegistrationPage(Model model) {
-        model.addAttribute("username", new User());
-        return "register";
-    }
-
-    @PostMapping("/register")
-    public String creatUserAccount(@RequestParam String username,
-                                   @RequestParam String password,
-                                   @RequestParam Integer age,
-                                   @RequestParam String email) {
-        String hashedPassword = bCryptPasswordEncoder.encode(password);
-        Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new RuntimeException("Role ROLE_USER not found!"));
-
-        User user = new User(username, hashedPassword, age, email, Set.of(userRole));
-        userService.save(user);
-        return "redirect:/login";
     }
 
     @GetMapping("/login")
@@ -60,13 +26,10 @@ public class UserControllers {
     }
 
     @GetMapping("/user")
-    public String userPage(Model model) {
+    public String userPage(Model model, Principal principal) {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-
+        String username = principal.getName();
         User currentUser = userService.findByUsername(username);
-
         model.addAttribute("user", currentUser);
 
         return "user";

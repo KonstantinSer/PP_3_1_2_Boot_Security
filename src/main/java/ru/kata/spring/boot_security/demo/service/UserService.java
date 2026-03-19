@@ -12,11 +12,11 @@ import java.util.List;
 
 public interface UserService extends UserDetailsService {
     List<User> findAll();
-    void save(User user);
     User findById(Long id);
     void delete(Long id);
     User findByUsername(String username);
-    User updateUser(User user);
-    public void saveWithRoles(User user);
+    void updateUser(User user, List<Long> roleIds);
+    void newUser(User user, List<Long> roleIds);
+    List<Role> getAllRoles();
+    }
 
-}
